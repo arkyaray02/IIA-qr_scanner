@@ -5,9 +5,10 @@ let selectedCameraId = null;
 
 // Function to list available cameras and populate dropdown
 function populateCameraOptions() {
-    cameraSelection.innerHTML = ""; // Clear existing options
+    cameraSelection.innerHTML = "<option value=''>Select Camera</option>"; // Clear existing options and add a default option
 
     Html5Qrcode.getCameras().then(devices => {
+        console.log("Available devices:", devices);  // Debugging line to check devices array
         if (devices && devices.length) {
             devices.forEach(device => {
                 const option = document.createElement('option');
