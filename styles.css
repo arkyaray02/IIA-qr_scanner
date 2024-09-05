@@ -46,3 +46,9 @@ h1 {
     font-size: 18px;
     color: #3dbb57; /* Green color for the result */
 }
+
+#cameraSelection {
+    margin-bottom: 20px;
+    padding: 10px;
+    font-size: 16px;
+}
