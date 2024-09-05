@@ -6,10 +6,9 @@
     <title>QR Code Scanner</title>
     <style>
         body {
-            background: linear-gradient(135deg, #ffffff 0%, #e0f2f1 100%); /* Green and white gradient background */
-            height: 100vh;
-            font-family: 'San Francisco', Arial, sans-serif; /* Apple-like font */
-            color: #3dbb57; /* Green font color */
+            background-color: white;
+            font-family: Arial, sans-serif;
+            color: #333;
             text-align: center;
         }
 
@@ -87,8 +86,9 @@
         const cameraList = document.getElementById('cameraList');
 
         let stream;
+        let canvas;
+        let context;
 
-        // Function to get available cameras
         async function getCameras() {
             const devices = await navigator.mediaDevices.enumerateDevices();
             const videoDevices = devices.filter(device => device.kind === 'videoinput');
@@ -103,7 +103,6 @@
             });
         }
 
-        // Function to start scanning
         async function startScanning() {
             const selectedCameraId = cameraList.value;
             if (stream) {
@@ -116,7 +115,13 @@
                 video.srcObject = stream;
                 video.setAttribute('playsinline', true); // required for iOS
                 video.play();
-                requestAnimationFrame(scanQRCode);
+
+                // Initialize canvas
+                canvas = document.createElement('canvas');
+                context = canvas.getContext('2d');
+
+                // Start scanning with a reduced interval
+                setInterval(scanQRCode, 100); // Scan every 100ms
             } catch (err) {
                 console.error('Error accessing camera: ', err);
                 resultDiv.textContent = 'Error accessing camera. Please check permissions.';
@@ -124,9 +129,6 @@
         }
 
         function scanQRCode() {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-
             if (video.videoWidth > 0) {
                 canvas.height = video.videoHeight;
                 canvas.width = video.videoWidth;
@@ -137,11 +139,7 @@
 
                 if (code) {
                     window.location.href = code.data;
-                } else {
-                    requestAnimationFrame(scanQRCode);
                 }
-            } else {
-                requestAnimationFrame(scanQRCode);
             }
         }
 
