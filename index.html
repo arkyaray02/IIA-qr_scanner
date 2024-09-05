@@ -7,8 +7,9 @@
     <style>
         body {
             background: linear-gradient(135deg, #ffffff 0%, #e0f2f1 100%); /* Green and white gradient background */
-            font-family: 'San Francisco', Arial, sans-serif;
-            color: #3dbb57; 
+            height: 100vh;
+            font-family: 'San Francisco', Arial, sans-serif; /* Apple-like font */
+            color: #3dbb57; /* Green font color */
             text-align: center;
         }
 
@@ -59,34 +60,68 @@
             padding: 10px;
             font-size: 16px;
         }
+
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>QR Code Scanner</h1>
-        <video id="video" class="video-box" autoplay></video>
         <div id="cameraSelection">
-            <button class="button" onclick="requestAnimationFrame(scanQRCode)">Start Scanning</button>
+            <label for="cameraList">Select Camera:</label>
+            <select id="cameraList"></select>
+            <button class="button" onclick="startScanning()">Start Scanning</button>
         </div>
+        <video id="video" class="video-box" autoplay></video>
         <div class="result" id="result"></div>
     </div>
     <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
     <script>
         const video = document.getElementById('video');
         const resultDiv = document.getElementById('result');
+        const cameraList = document.getElementById('cameraList');
 
-        // Access the camera
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(stream => {
+        let stream;
+
+        // Function to get available cameras
+        async function getCameras() {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+            cameraList.innerHTML = ''; // Clear existing options
+
+            videoDevices.forEach((device, index) => {
+                const option = document.createElement('option');
+                option.value = device.deviceId;
+                option.text = device.label || `Camera ${index + 1}`;
+                cameraList.add(option);
+            });
+        }
+
+        // Function to start scanning
+        async function startScanning() {
+            const selectedCameraId = cameraList.value;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { deviceId: selectedCameraId ? { exact: selectedCameraId } : undefined }
+                });
                 video.srcObject = stream;
                 video.setAttribute('playsinline', true); // required for iOS
                 video.play();
                 requestAnimationFrame(scanQRCode);
-            })
-            .catch(err => {
+            } catch (err) {
                 console.error('Error accessing camera: ', err);
                 resultDiv.textContent = 'Error accessing camera. Please check permissions.';
-            });
+            }
+        }
 
         function scanQRCode() {
             const canvas = document.createElement('canvas');
@@ -109,6 +144,9 @@
                 requestAnimationFrame(scanQRCode);
             }
         }
+
+        // Initialize camera selection
+        getCameras();
     </script>
 </body>
 </html>
