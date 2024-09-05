@@ -4,126 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
-        }
-        video {
-            width: 300px;
-            height: 300px;
-            border: 2px solid #000;
-            margin-bottom: 20px;
-        }
-        #loadingMessage {
-            color: red;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>QR Code Scanner</h1>
-    <div id="loadingMessage">🎥 Loading video...</div>
-    <video id="video" autoplay></video>
-    <canvas id="canvas" hidden></canvas>
+    <div class="container">
+        <h1>Ticket & Food Verification</h1>
+        <video id="video" class="video-box"></video>
+        <div id="result" class="result">
+            <!-- Result will be shown here after successful scan -->
+        </div>
+        <button id="startScan" class="button">Start Scan</button>
+    </div>
 
-    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
-    <script>
-        const videoElement = document.getElementById("video");
-        const canvasElement = document.getElementById("canvas");
-        const canvas = canvasElement.getContext("2d");
-        const loadingMessage = document.getElementById("loadingMessage");
-        let videoStream = null; // To hold the video stream
-        let isScanned = false;  // Flag to prevent multiple scans
-        let isCameraInitialized = false; // Prevent re-initializing the camera
-
-        // Clear existing video streams
-        function clearVideoStream() {
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-                videoElement.srcObject = null;  // Clear the video feed
-                videoStream = null;
-            }
-        }
-
-        function drawLine(begin, end, color) {
-            canvas.beginPath();
-            canvas.moveTo(begin.x, begin.y);
-            canvas.lineTo(end.x, end.y);
-            canvas.lineWidth = 4;
-            canvas.strokeStyle = color;
-            canvas.stroke();
-        }
-
-        // Access the user's camera
-        function startCamera() {
-            clearVideoStream();  // Clear any existing video feed
-
-            if (!isCameraInitialized) {
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
-                    videoStream = stream;  // Store the stream
-                    videoElement.srcObject = stream;
-                    videoElement.setAttribute("playsinline", true); // Required for iOS to prevent fullscreen
-                    videoElement.play();
-                    isCameraInitialized = true;
-                    requestAnimationFrame(tick);
-                }).catch(function(err) {
-                    console.error("Error accessing camera: ", err);
-                });
-            }
-        }
-
-        function stopCamera() {
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());  // Stop the video stream
-                videoElement.srcObject = null;  // Clear the video source
-            }
-            isCameraInitialized = false;
-        }
-
-        function tick() {
-            if (isScanned) return;  // Prevent further processing if already scanned
-
-            loadingMessage.innerText = "⌛ Loading video...";
-            if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
-                loadingMessage.hidden = true;
-                canvasElement.hidden = false;
-
-                // Set canvas dimensions equal to the video feed
-                canvasElement.width = videoElement.videoWidth;
-                canvasElement.height = videoElement.videoHeight;
-                canvas.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-
-                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-                if (code) {
-                    // Draw rectangle around the QR code
-                    drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
-                    drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
-                    drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
-                    drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
-
-                    // Stop the camera after QR code is scanned
-                    isScanned = true;  // Flag to prevent further scans
-                    stopCamera();  // Stop the video stream
-
-                    // Redirect to the URL in the QR code
-                    setTimeout(() => {
-                        window.location.href = code.data;  // Redirect to the scanned URL
-                    }, 500);  // Add a slight delay before redirect
-                }
-            }
-            requestAnimationFrame(tick);
-        }
-
-        // Start the camera on page load
-        startCamera();
-    </script>
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
