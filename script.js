@@ -1,44 +1,36 @@
-let videoStream = null;
-const videoElement = document.getElementById('video');
-const resultElement = document.getElementById('result');
 const startScanButton = document.getElementById('startScan');
-
-// Start camera function
-function startCamera() {
-    if (videoStream) {
-        stopCamera(); // Stop existing stream if already active
-    }
-
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then((stream) => {
-            videoStream = stream;
-            videoElement.srcObject = stream;
-            videoElement.play();
-        })
-        .catch((err) => {
-            console.error("Error accessing camera: ", err);
-        });
-}
-
-// Stop camera function
-function stopCamera() {
-    if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-        videoStream = null;
-    }
-}
+const resultElement = document.getElementById('result');
+let scanner = null;
+let isScanning = false;
 
 // QR code scanning setup
-const html5QrCode = new Html5Qrcode("video");
+function initializeScanner() {
+    if (!scanner) {
+        scanner = new Html5Qrcode("reader");
+    }
+
+    if (!isScanning) {
+        scanner.start({ facingMode: "environment" }, {
+            fps: 10, qrbox: 250
+        }, onScanSuccess, onScanError)
+        .catch(err => {
+            console.error(`Error starting the camera: ${err}`);
+        });
+    }
+}
 
 // Handle scan result
 function onScanSuccess(decodedText, decodedResult) {
     // Stop the camera after successful scan
-    stopCamera();
+    scanner.stop().then(() => {
+        isScanning = false;
+    }).catch(err => {
+        console.error("Failed to stop scanning:", err);
+    });
 
     // Show the result
     resultElement.innerHTML = `Ticket Holder: <strong>Admin Test</strong><br>Ticket Verified`;
-    
+
     // Redirect to the scanned URL
     window.location.href = decodedText;
 }
@@ -50,6 +42,6 @@ function onScanError(errorMessage) {
 
 // Start scanning QR code
 startScanButton.addEventListener('click', () => {
-    startCamera();
-    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess, onScanError);
+    initializeScanner();
+    isScanning = true;
 });
