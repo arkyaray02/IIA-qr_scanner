@@ -25,16 +25,36 @@ function populateCameraOptions() {
 function initializeScanner() {
     selectedCameraId = cameraSelection.value;
     
+    // Ensure scanner instance is initialized only once
     if (!scanner) {
         scanner = new Html5Qrcode("reader");
     }
 
-    if (!isScanning && selectedCameraId) {
-        scanner.start({ deviceId: { exact: selectedCameraId } }, {
-            fps: 10, qrbox: 250
-        }, onScanSuccess, onScanError)
-        .then(() => {
-            isScanning = true;
+    // Stop scanning if it's already running
+    if (isScanning) {
+        scanner.stop().then(() => {
+            isScanning = false;
+            startScan();
+        }).catch(err => {
+            console.error("Failed to stop the scanner:", err);
+        });
+    } else {
+        startScan();
+    }
+}
+
+function startScan() {
+    // Start the scanning with the selected camera
+    if (selectedCameraId) {
+        scanner.start(
+            { deviceId: { exact: selectedCameraId } },
+            {
+                fps: 10,    // Frames per second
+                qrbox: { width: 250, height: 250 }  // QR code scanning area
+            },
+            onScanSuccess, onScanError
+        ).then(() => {
+            isScanning = true;  // Scanning started
         }).catch(err => {
             console.error(`Error starting the camera: ${err}`);
         });
@@ -53,8 +73,7 @@ function onScanSuccess(decodedText, decodedResult) {
     // Show the result
     resultElement.innerHTML = `Ticket Holder: <strong>Admin Test</strong><br>Ticket Verified`;
 
-    // Redirect to the scanned URL (or handle result as needed)
-    window.location.href = decodedText;
+    // You can handle the decodedText result as you need (like redirecting to the scanned URL)
 }
 
 // Handle scan error (optional)
