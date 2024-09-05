@@ -40,6 +40,7 @@
         const loadingMessage = document.getElementById("loadingMessage");
         let videoStream = null; // To hold the video stream
         let isScanned = false;  // Flag to prevent multiple scans
+        let isCameraInitialized = false; // Prevent re-initializing the camera
 
         function drawLine(begin, end, color) {
             canvas.beginPath();
@@ -51,19 +52,27 @@
         }
 
         // Access the user's camera
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
-            videoStream = stream;  // Store the stream
-            videoElement.srcObject = stream;
-            videoElement.setAttribute("playsinline", true); // Required for iOS to prevent fullscreen
-            videoElement.play();
-            requestAnimationFrame(tick);
-        });
+        function startCamera() {
+            if (!isCameraInitialized) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
+                    videoStream = stream;  // Store the stream
+                    videoElement.srcObject = stream;
+                    videoElement.setAttribute("playsinline", true); // Required for iOS to prevent fullscreen
+                    videoElement.play();
+                    isCameraInitialized = true;
+                    requestAnimationFrame(tick);
+                }).catch(function(err) {
+                    console.error("Error accessing camera: ", err);
+                });
+            }
+        }
 
         function stopCamera() {
             if (videoStream) {
                 videoStream.getTracks().forEach(track => track.stop());  // Stop the video stream
                 videoElement.srcObject = null;  // Clear the video source
             }
+            isCameraInitialized = false;
         }
 
         function tick() {
@@ -101,6 +110,9 @@
             }
             requestAnimationFrame(tick);
         }
+
+        // Start the camera on page load
+        startCamera();
     </script>
 </body>
 </html>
