@@ -6,26 +6,22 @@ let selectedCameraId = null;
 
 // Function to list available cameras and populate dropdown
 function populateCameraOptions() {
-    Html5Qrcode.getCameras().then(devices => {
-        if (devices && devices.length) {
-            cameraSelection.innerHTML = ''; // Clear the dropdown
+    cameraSelection.innerHTML = ""; // Clear existing options
 
+    Html5Qrcode.getCameras().then(devices => {
+        console.log("Available devices:", devices);  // Debugging line
+        if (devices && devices.length) {
             devices.forEach(device => {
                 const option = document.createElement('option');
                 option.value = device.id;
                 option.text = device.label || `Camera ${cameraSelection.length + 1}`;
                 cameraSelection.appendChild(option);
             });
-
-            // Automatically select the first camera
-            selectedCameraId = devices[0].id;
         } else {
             alert("No cameras found!");
-            console.warn("No cameras detected.");
         }
     }).catch(err => {
         console.error("Error enumerating devices:", err);
-        alert("Error detecting cameras. Please ensure you have given camera access.");
     });
 }
 
@@ -46,7 +42,6 @@ function startScan() {
             console.log("Camera started successfully");
         }).catch(err => {
             console.error(`Error starting the camera: ${err}`);
-            alert("Error starting the camera. Please check camera permissions or try another device.");
         });
     }
 }
