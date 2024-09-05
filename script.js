@@ -1,5 +1,4 @@
 const startScanButton = document.getElementById('startScan');
-const resultElement = document.getElementById('result');
 const cameraSelection = document.getElementById('cameraSelection');
 let scanner = null;
 let selectedCameraId = null;
@@ -9,7 +8,6 @@ function populateCameraOptions() {
     cameraSelection.innerHTML = ""; // Clear existing options
 
     Html5Qrcode.getCameras().then(devices => {
-        console.log("Available devices:", devices);  // Debugging line
         if (devices && devices.length) {
             devices.forEach(device => {
                 const option = document.createElement('option');
@@ -30,7 +28,6 @@ function startScan() {
     if (selectedCameraId) {
         scanner = new Html5Qrcode("reader");
 
-        // Start the scanning with the selected camera
         scanner.start(
             { deviceId: { exact: selectedCameraId } },
             {
@@ -38,22 +35,18 @@ function startScan() {
                 qrbox: { width: 250, height: 250 }  // QR code scanning area
             },
             onScanSuccess, onScanError
-        ).then(() => {
-            console.log("Camera started successfully");
-        }).catch(err => {
+        ).catch(err => {
             console.error(`Error starting the camera: ${err}`);
         });
+    } else {
+        alert("Please select a camera first.");
     }
 }
 
 // Handle scan result
 function onScanSuccess(decodedText, decodedResult) {
-    // Stop the camera after successful scan
-    scanner.stop().then(() => {
-        resultElement.innerHTML = `Ticket Holder: <strong>${decodedText}</strong><br>Ticket Verified`;
-    }).catch(err => {
-        console.error("Failed to stop scanning:", err);
-    });
+    // Redirect to the URL encoded in the QR code
+    window.location.href = decodedText;
 }
 
 // Handle scan error (optional)
@@ -64,11 +57,7 @@ function onScanError(errorMessage) {
 // Event to start scanning after camera selection
 startScanButton.addEventListener('click', () => {
     selectedCameraId = cameraSelection.value;
-    if (selectedCameraId) {
-        startScan();
-    } else {
-        alert("Please select a camera first.");
-    }
+    startScan();
 });
 
 // Populate cameras when page loads
