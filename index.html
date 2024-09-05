@@ -4,19 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner</title>
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
-    <script src="script.js" defer></script>
+    <style>
+        #video {
+            width: 100%;
+            max-width: 600px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Select Camera and Start Scanning</h1>
-        <select id="cameraSelection">
-            <option value="">Select Camera</option>
-        </select>
-        <button id="startScan" class="button">Start Scan</button>
-        <div id="reader" class="video-box"></div>
-        <div id="result" class="result"></div>
-    </div>
+    <h1>QR Code Scanner</h1>
+    <video id="video" autoplay></video>
+    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+    <script>
+        const video = document.getElementById('video');
+
+        // Access the camera
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => {
+                video.srcObject = stream;
+                video.setAttribute('playsinline', true); // required for iOS
+                video.play();
+                requestAnimationFrame(scanQRCode);
+            })
+            .catch(err => {
+                console.error('Error accessing camera: ', err);
+            });
+
+        function scanQRCode() {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            if (video.videoWidth > 0) {
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+                if (code) {
+                    window.location.href = code.data;
+                } else {
+                    requestAnimationFrame(scanQRCode);
+                }
+            } else {
+                requestAnimationFrame(scanQRCode);
+            }
+        }
+    </script>
 </body>
 </html>
-
