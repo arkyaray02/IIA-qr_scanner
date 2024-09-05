@@ -5,18 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner</title>
     <style>
-        #video {
+        body {
+            background-color: white;
+            font-family: Arial, sans-serif;
+            color: #333;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f0f5f1; /* Light green background */
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #3dbb57; /* Dark green header */
+            margin-bottom: 20px;
+        }
+
+        .video-box {
             width: 100%;
-            max-width: 600px;
+            max-height: 300px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .button {
+            background-color: #3dbb57; /* Green button */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .button:hover {
+            background-color: #34a34a; /* Darker green on hover */
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #3dbb57; /* Green color for the result */
+        }
+
+        #cameraSelection {
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
-    <h1>QR Code Scanner</h1>
-    <video id="video" autoplay></video>
+    <div class="container">
+        <h1>QR Code Scanner</h1>
+        <video id="video" class="video-box" autoplay></video>
+        <div id="cameraSelection">
+            <button class="button" onclick="requestAnimationFrame(scanQRCode)">Start Scanning</button>
+        </div>
+        <div class="result" id="result"></div>
+    </div>
     <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
     <script>
         const video = document.getElementById('video');
+        const resultDiv = document.getElementById('result');
 
         // Access the camera
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
@@ -28,6 +85,7 @@
             })
             .catch(err => {
                 console.error('Error accessing camera: ', err);
+                resultDiv.textContent = 'Error accessing camera. Please check permissions.';
             });
 
         function scanQRCode() {
