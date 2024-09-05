@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Scanner</title>
+    <title>QR Code Scanner with Camera Selection</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <h1>Ticket & Food Verification</h1>
-        <video id="video" class="video-box"></video>
-        <div id="result" class="result">
-            <!-- Result will be shown here after successful scan -->
-        </div>
+
+        <!-- Dropdown for camera selection -->
+        <label for="cameraSelection">Select Camera:</label>
+        <select id="cameraSelection"></select>
+
+        <!-- Video feed -->
+        <div id="reader" class="video-box"></div>
+
+        <!-- Result display -->
+        <div id="result" class="result"></div>
+
         <button id="startScan" class="button">Start Scan</button>
     </div>
 
