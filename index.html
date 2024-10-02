@@ -104,33 +104,34 @@
             });
         }
 
-        async function startScanning() {
-            const selectedCameraId = cameraList.value;
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        deviceId: selectedCameraId ? { exact: selectedCameraId } : undefined,
-                        facingMode: { ideal: "environment" } // Suggest the back camera without forcing it
-                    }
-                });
-                video.srcObject = stream;
-                video.setAttribute('playsinline', true); // required for iOS
-                video.play();
+        async function getCameras() {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
 
-                // Initialize canvas
-                canvas = document.createElement('canvas');
-                context = canvas.getContext('2d');
+            cameraList.innerHTML = ''; // Clear existing options
 
-                // Start scanning with a reduced interval
-                setInterval(scanQRCode, 100); // Scan every 100ms
-            } catch (err) {
-                console.error('Error accessing camera: ', err);
-                resultDiv.textContent = 'Error accessing camera. Please check permissions.';
-            }
+            let defaultCameraIndex = 0; // Default to first camera
+
+            // Populate the camera list dropdown
+            videoDevices.forEach((device, index) => {
+                const option = document.createElement('option');
+                option.value = device.deviceId;
+                option.text = device.label || `Camera ${index + 1}`;
+                cameraList.add(option);
+
+                // Automatically select the back camera if it has "facing back" or "environment" in the label
+                if (device.label.toLowerCase().includes("back") || device.label.toLowerCase().includes("environment")) {
+                    defaultCameraIndex = index; // Set rear camera as default
+                }
+            });
+
+            // Set the back camera as the default choice
+            cameraList.selectedIndex = defaultCameraIndex;
         }
+
+// Initialize camera selection on page load
+getCameras();
+
 
 
         function scanQRCode() {
