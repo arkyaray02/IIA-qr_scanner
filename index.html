@@ -111,7 +111,10 @@
             }
             try {
                 stream = await navigator.mediaDevices.getUserMedia({
-                    video: { deviceId: selectedCameraId ? { exact: selectedCameraId } : undefined }
+                    video: {
+                        deviceId: selectedCameraId ? { exact: selectedCameraId } : undefined,
+                        facingMode: { ideal: "environment" } // Suggest the back camera without forcing it
+                    }
                 });
                 video.srcObject = stream;
                 video.setAttribute('playsinline', true); // required for iOS
@@ -128,6 +131,7 @@
                 resultDiv.textContent = 'Error accessing camera. Please check permissions.';
             }
         }
+
 
         function scanQRCode() {
             if (video.videoWidth > 0) {
